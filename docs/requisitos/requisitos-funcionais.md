@@ -22,6 +22,9 @@ O sistema deve permitir que o usuário informe seu e-mail e sua senha para inici
 
 As contas serão cadastradas pelo Administrador, conforme o RF03 — Usuários.
 
+O e-mail informado no login deve seguir as regras de
+[tratamento do e-mail](#tratamento-do-e-mail) definidas no RF03 — Usuários.
+
 ### Regras de acesso
 
 - O acesso exige uma conta cadastrada e ativa.
@@ -264,10 +267,6 @@ A versão inicial atenderá uma única empresa. O atendimento a múltiplas empre
 - A manutenção dos dados e das configurações da empresa deve ser restrita ao Administrador.
 - A V1 não deve oferecer seleção ou alternância entre empresas.
 - O sistema deve impedir a criação de uma segunda empresa.
-
-### Pontos a detalhar
-
-- Procedimento controlado de correção do CNPJ
 
 ### Configuração inicial
 
@@ -516,3 +515,529 @@ Cada correção executada deve possuir um registro contendo:
 - **CA54:** o histórico de uma correção executada deve referenciar o identificador da solicitação correspondente.
 - **CA55:** documentos reais utilizados na correção não devem ser publicados no repositório público do projeto.
 
+## RF03 — Usuários
+
+### Objetivo
+
+Permitir que o Administrador cadastre e mantenha os usuários da empresa, controle sua situação de acesso e atribua seus papéis.
+
+### Ator
+
+Administrador.
+
+### Etapa
+
+Na V1, estarão disponíveis os papéis Colaborador, Gestor e Administrador. Os papéis Financeiro e Auditor serão incluídos nas respectivas etapas de evolução.
+
+### Dados do usuário
+
+| Campo | Obrigatoriedade | Regra |
+|---|---|---|
+| Nome completo | Obrigatório | Identifica a pessoa |
+| E-mail | Obrigatório | Deve ser único entre as contas cadastradas |
+| Papéis | Obrigatório | Deve conter pelo menos um papel disponível |
+| Situação | Obrigatório | Ativo ou inativo; ativo por padrão no cadastro |
+| Empresa | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
+
+### Regras do cadastro
+
+- O cadastro de usuários deve ser restrito ao Administrador.
+- O sistema não deve oferecer cadastro público.
+- Um usuário deve poder possuir mais de um papel.
+- A empresa deve ser atribuída automaticamente, sem seleção pelo Administrador.
+- A conta deve ser criada como ativa por padrão.
+- Após o cadastro, o sistema deve enviar o convite de definição da primeira senha, conforme o RF01.
+- A situação de acesso e a conclusão do primeiro acesso devem ser tratadas separadamente. Uma conta ativa pode estar aguardando a definição da primeira senha.
+- A atribuição de papéis deve respeitar as regras de autorização definidas para cada funcionalidade.
+
+### Critérios de aceite do cadastro
+
+- **CA01:** um Administrador autenticado deve conseguir cadastrar um usuário com nome completo, e-mail válido e pelo menos um papel disponível.
+- **CA02:** a ausência de qualquer campo obrigatório deve impedir o cadastro e gerar uma orientação de preenchimento.
+- **CA03:** o sistema deve impedir o cadastro de outra conta com um e-mail já utilizado, inclusive por uma conta inativa.
+- **CA04:** deve ser possível atribuir mais de um papel ao mesmo usuário.
+- **CA05:** o sistema deve recusar a atribuição de papéis que não estejam disponíveis na versão.
+- **CA06:** a conta deve ser vinculada automaticamente à empresa da V1 e criada como ativa por padrão.
+- **CA07:** o usuário cadastrado deve receber o convite de primeiro acesso conforme as regras do RF01.
+- **CA08:** usuários sem o papel de Administrador não devem conseguir cadastrar contas, inclusive por solicitações diretas à API.
+
+### Detalhamentos relacionados
+
+- Documentar, na preparação da implantação, o canal privado e o
+  procedimento de conferência de identidade para correção do e-mail.
+- Detalhar as permissões específicas nos requisitos de cada
+  funcionalidade, respeitando as regras de acesso deste RF03.
+
+### Tratamento do e-mail
+
+- O sistema deve remover espaços em branco no início e no fim do e-mail informado.
+- O sistema deve converter letras maiúsculas para minúsculas antes de armazenar ou comparar o e-mail.
+- A verificação de duplicidade deve utilizar o e-mail normalizado e considerar contas ativas e inativas.
+- O login previsto no RF01 deve aplicar a mesma normalização.
+- Espaços no interior do endereço não devem ser removidos silenciosamente; o endereço deve ser recusado como inválido.
+- A normalização não deve remover pontos nem sufixos iniciados por “+”, pois isso poderia alterar o endereço informado.
+- A validação do formato não deve ser apresentada como confirmação de que a caixa de e-mail existe ou pertence ao usuário.
+
+### Critérios de aceite do tratamento do e-mail
+
+- **CA09:** um e-mail informado com espaços no início ou no fim deve ser processado sem esses espaços.
+- **CA10:** e-mails que diferem apenas por letras maiúsculas e minúsculas devem ser considerados o mesmo endereço.
+- **CA11:** o cadastro deve ser recusado quando o e-mail normalizado já estiver associado a outra conta, ativa ou inativa.
+- **CA12:** o usuário deve conseguir realizar login independentemente do uso de maiúsculas e minúsculas no e-mail.
+- **CA13:** um endereço com espaços internos deve ser recusado, sem alteração silenciosa para outro endereço.
+- **CA14:** pontos e sufixos iniciados por “+” devem ser preservados na normalização.
+
+### Alteração do nome e do e-mail
+
+- O Administrador deve poder alterar o nome completo do usuário.
+- O nome completo deve permanecer obrigatório.
+- O e-mail deve ser apresentado somente para leitura após o cadastro.
+- O bloqueio do e-mail deve ser aplicado também a contas que ainda não concluíram o primeiro acesso.
+- O servidor deve recusar tentativas de alteração do e-mail pela operação comum de atualização cadastral.
+- A alteração do nome deve preservar a identidade da conta, suas associações e seu histórico.
+- Eventuais correções do e-mail devem ocorrer por procedimento controlado, separado da edição cadastral comum.
+
+### Critérios de aceite da alteração do nome e do e-mail
+
+- **CA15:** um Administrador autenticado deve conseguir atualizar o nome completo de um usuário.
+- **CA16:** uma tentativa de deixar o nome completo vazio ou composto somente por espaços deve ser recusada, preservando o valor anterior.
+- **CA17:** a tela de edição deve apresentar o e-mail somente para leitura, inclusive quando o primeiro acesso estiver pendente.
+- **CA18:** tentativas de alterar o e-mail pela operação comum da API devem ser recusadas, preservando o endereço existente.
+- **CA19:** a alteração do nome deve manter o identificador da conta, suas associações e seu histórico.
+
+
+### Responsabilidade pela correção do e-mail
+
+- A correção deve ser solicitada pelo Administrador.
+- A execução deve ser restrita ao responsável técnico pela implantação.
+- O papel de Administrador do aplicativo, por si só, não deve autorizar a execução do procedimento técnico.
+- A correção deve preservar a identidade da conta, suas associações e seu histórico.
+- O novo e-mail deve seguir as regras de normalização, validação e unicidade previstas neste requisito.
+- O procedimento deve corrigir o endereço da mesma pessoa, sem permitir transferir a conta para outro usuário.
+
+### Critérios de aceite da responsabilidade pela correção
+
+- **CA20:** a correção deve depender de solicitação do Administrador e de execução por responsável técnico autorizado.
+- **CA21:** um novo e-mail inválido ou já associado a outra conta, ativa ou inativa, deve ser recusado.
+- **CA22:** a correção deve preservar o identificador da conta, suas associações e seu histórico.
+
+### Pontos a detalhar da correção do e-mail
+
+- Informações necessárias à solicitação e à conferência da identidade do usuário.
+- Registro e armazenamento do histórico da correção.
+- Confirmação do novo endereço e retomada do acesso.
+
+### Efeito da correção do e-mail sobre o acesso
+
+- A correção do e-mail deve invalidar todos os convites de primeiro acesso pendentes da conta.
+- A correção deve revogar todas as sessões existentes da conta, em todos os dispositivos.
+- As credenciais das sessões revogadas não devem permitir acesso à API nem renovação.
+- O procedimento não deve ser considerado concluído com sucesso enquanto a alteração do e-mail e as invalidações necessárias não estiverem efetivadas.
+- A correção deve preservar a identidade da conta, os registros de negócio e o histórico existente.
+- A revogação de todas as sessões por correção de e-mail não deve alterar o comportamento da opção “Sair”, que continua restrita à sessão atual.
+
+### Critérios de aceite dos efeitos sobre o acesso
+
+- **CA23:** após a correção, convites de primeiro acesso emitidos anteriormente não devem permitir a definição de senha.
+- **CA24:** credenciais de qualquer sessão anterior à correção devem ser recusadas nas tentativas de acesso à API.
+- **CA25:** tentativas de renovação das sessões anteriores devem ser recusadas.
+- **CA26:** a correção não deve excluir despesas, comprovantes ou outros registros associados ao usuário.
+- **CA27:** o procedimento não deve informar sucesso se a alteração do e-mail ou alguma das invalidações obrigatórias não tiver sido concluída.
+
+### Retomada do acesso após correção do e-mail
+
+- Após a correção, o sistema deve enviar ao novo endereço um link para confirmação do e-mail e definição de uma nova senha.
+- O link deve ser de uso único e ter validade de 24 horas a partir da emissão.
+- A conta deve permanecer impedida de realizar login enquanto esse processo estiver pendente.
+- A senha anterior não deve permitir autenticação após a correção.
+- O usuário deve informar e confirmar uma nova senha, respeitando a política definida no RF01.
+- A confirmação do novo endereço deve ocorrer na conclusão bem-sucedida da definição da senha, e não apenas na abertura do link.
+- Após a conclusão, o link deve ser invalidado.
+- A conclusão não deve iniciar uma sessão automaticamente. O usuário deve retornar ao login e utilizar o novo e-mail e a nova senha.
+- A confirmação não deve alterar a situação administrativa da conta. Uma conta inativa deve continuar sem acesso.
+- O fluxo deve integrar o procedimento controlado de correção de e-mail, sem disponibilizar recuperação pública de senha na V1.
+
+### Critérios de aceite da retomada do acesso
+
+- **CA28:** após a correção, a mensagem de confirmação deve ser enviada ao novo endereço cadastrado.
+- **CA29:** enquanto a confirmação e a definição da nova senha estiverem pendentes, tentativas de login devem ser recusadas.
+- **CA30:** um link válido deve permitir concluir o processo quando a senha e sua confirmação coincidirem e atenderem à política do RF01.
+- **CA31:** abrir o link sem concluir o processo não deve confirmar o endereço nem consumir o link.
+- **CA32:** links expirados ou já utilizados não devem permitir concluir o processo.
+- **CA33:** após a conclusão, o usuário deve conseguir entrar com o novo e-mail e a nova senha, desde que a conta esteja ativa.
+- **CA34:** a conclusão deve preservar a situação inativa de uma conta desativada e não deve permitir seu acesso.
+- **CA35:** o e-mail anterior e a senha anterior não devem permitir autenticação na conta corrigida.
+
+### Reenvio da confirmação após correção do e-mail
+
+- O Administrador deve poder solicitar o reenvio enquanto a confirmação do novo e-mail e a definição da nova senha estiverem pendentes.
+- O link deve ser enviado exclusivamente ao endereço corrigido registrado na conta.
+- A operação de reenvio não deve permitir informar ou alterar o endereço de destino.
+- Cada reenvio deve gerar um novo link de uso único, válido por 24 horas a partir da emissão, e invalidar o anterior.
+- O reenvio não deve liberar o acesso, alterar a situação administrativa da conta ou restaurar sessões revogadas.
+- Após a conclusão da confirmação e da definição da senha, o reenvio por esse fluxo não deve ser permitido.
+
+### Critérios de aceite do reenvio
+
+- **CA36:** enquanto o processo estiver pendente, o Administrador deve conseguir solicitar o envio de um novo link ao e-mail corrigido da conta.
+- **CA37:** após a emissão do novo link, o anterior deve ser recusado, mesmo que seu prazo original ainda não tenha terminado.
+- **CA38:** o novo link deve possuir validade de 24 horas contadas a partir de sua própria emissão.
+- **CA39:** a solicitação de reenvio não deve permitir substituir o endereço de destino.
+- **CA40:** o reenvio deve preservar o bloqueio de acesso pendente de confirmação e não deve reativar contas ou sessões.
+- **CA41:** após a conclusão do processo, tentativas de reenvio por esse fluxo devem ser recusadas.
+- **CA42:** usuários sem autorização de Administrador não devem conseguir solicitar o reenvio.
+
+### Solicitação e conferência da correção do e-mail
+
+- A solicitação deve ser feita pelo Administrador e conter:
+  - Identificador da conta.
+  - E-mail atualmente cadastrado.
+  - E-mail correto.
+  - Motivo da correção.
+  - Identificação do solicitante.
+- O responsável técnico deve conferir se a solicitação corresponde à correção do endereço da mesma pessoa, sem transferência da conta para outro usuário.
+- A conferência deve possuir evidência registrada antes da execução.
+- Informações insuficientes ou divergentes devem impedir a execução até seu esclarecimento.
+- A confirmação posterior pelo link enviado ao novo e-mail não deve substituir a conferência prévia de identidade.
+
+### Histórico e armazenamento da correção
+
+- A solicitação e a evidência de conferência devem ser armazenadas em chamado ou registro privado, acessível somente aos responsáveis autorizados.
+- Cada solicitação deve possuir um identificador.
+- O histórico da correção deve conter:
+  - Identificador da conta.
+  - E-mail anterior.
+  - E-mail novo.
+  - Motivo da correção.
+  - Identificação do Administrador solicitante.
+  - Identificação do responsável técnico executor.
+  - Data e hora da alteração.
+  - Referência à solicitação e à evidência de conferência.
+- O histórico não deve armazenar senhas nem links ou tokens de confirmação.
+- Dados reais dos usuários e evidências de identidade não devem ser publicados no repositório público do projeto.
+- A V1 não deve exigir um sistema próprio de chamados para esse procedimento.
+
+### Critérios de aceite da solicitação e do histórico
+
+- **CA43:** solicitações sem os dados obrigatórios devem ser consideradas incompletas e não devem autorizar a execução.
+- **CA44:** a correção deve depender de conferência prévia de identidade, com evidência registrada.
+- **CA45:** divergências que impeçam confirmar a identidade do usuário devem bloquear a execução.
+- **CA46:** toda correção executada deve possuir histórico com os dados definidos neste requisito.
+- **CA47:** a solicitação e suas evidências devem estar disponíveis apenas aos responsáveis autorizados.
+- **CA48:** o histórico deve referenciar a solicitação sem registrar senhas, links ou tokens de confirmação.
+
+### Ativação e desativação de usuários
+
+- O Administrador deve poder ativar e desativar contas, respeitando as regras de proteção dos Administradores.
+- A desativação deve impedir novos logins e a renovação de credenciais.
+- A desativação deve revogar todas as sessões existentes da conta.
+- A desativação deve invalidar os links pendentes de primeiro acesso e de confirmação após correção do e-mail.
+- A desativação deve preservar a conta, suas associações, despesas e demais registros históricos.
+- A reativação deve permitir novamente a autenticação, desde que a conta tenha concluído a definição de senha e não possua confirmação de e-mail pendente.
+- A reativação não deve restaurar sessões nem links invalidados.
+- Quando houver primeiro acesso ou confirmação de e-mail pendente, será necessário emitir um novo link pelo fluxo correspondente.
+- A emissão ou utilização de um link não deve reativar automaticamente uma conta.
+- As operações de ativação e desativação devem registrar a conta afetada, o Administrador responsável, a data e hora e a situação anterior e posterior.
+
+### Critérios de aceite da ativação e desativação
+
+- **CA49:** um Administrador autorizado deve conseguir desativar uma conta, respeitando as regras de proteção dos Administradores.
+- **CA50:** após a desativação, tentativas de login, acesso à API e renovação de credenciais da conta devem ser recusadas.
+- **CA51:** links pendentes emitidos antes da desativação devem ser recusados.
+- **CA52:** a desativação deve preservar a identidade da conta e os registros associados.
+- **CA53:** após a reativação, uma conta com senha definida e sem confirmação pendente deve poder realizar um novo login.
+- **CA54:** a reativação não deve tornar válidas as sessões ou os links anteriormente invalidados.
+- **CA55:** uma conta reativada com primeiro acesso ou confirmação pendente deve continuar sem acesso até concluir o fluxo correspondente por um novo link.
+- **CA56:** a utilização de um link não deve permitir acesso enquanto a conta estiver inativa.
+- **CA57:** a ativação e a desativação devem possuir registro do responsável, momento da operação e situações anterior e posterior.
+
+### Proteção das contas de Administrador
+
+Para aplicação destas regras, considera-se Administrador apto ao acesso uma conta que:
+
+- Possua o papel de Administrador.
+- Esteja ativa.
+- Tenha concluído a definição de senha.
+- Não possua confirmação de e-mail pendente.
+
+Não é necessário que essa conta esteja com uma sessão aberta.
+
+As seguintes proteções devem ser aplicadas:
+
+- O Administrador não deve poder desativar a própria conta, mesmo que existam outros Administradores.
+- O sistema deve impedir a desativação do último Administrador apto ao acesso.
+- O sistema deve impedir a remoção do papel de Administrador quando a operação deixar a empresa sem outro Administrador apto ao acesso.
+- Contas com primeiro acesso ou confirmação de e-mail pendentes não devem ser consideradas substitutas para essas operações.
+- As verificações devem ser executadas no servidor com base na situação vigente das contas.
+- Operações simultâneas não devem permitir contornar essas proteções.
+
+### Critérios de aceite da proteção dos Administradores
+
+- **CA58:** uma tentativa de desativar a própria conta deve ser recusada, preservando sua situação.
+- **CA59:** uma tentativa de desativar o último Administrador apto ao acesso deve ser recusada.
+- **CA60:** uma tentativa de remover o papel do último Administrador apto ao acesso deve ser recusada.
+- **CA61:** a existência de outro Administrador com primeiro acesso ou confirmação de e-mail pendente não deve liberar uma operação que deixe a empresa sem Administrador apto ao acesso.
+- **CA62:** a existência de outro Administrador apto ao acesso deve permitir prosseguir com a operação, desde que as demais regras sejam atendidas.
+- **CA63:** duas operações simultâneas não devem conseguir desativar ou remover os papéis dos últimos Administradores aptos ao acesso.
+- **CA64:** uma operação bloqueada deve informar que é necessário manter outro Administrador ativo com a configuração de acesso concluída.
+
+### Proteção do Administrador na correção de e-mail
+
+- A correção do e-mail de uma conta com papel de Administrador deve verificar se outro Administrador permanecerá apto ao acesso após a operação.
+- Quando a correção deixar a empresa sem Administrador apto ao acesso, o procedimento deve ser bloqueado.
+- Antes de prosseguir, outro Administrador deve estar ativo, com senha definida e sem confirmação de e-mail pendente.
+- A verificação deve ocorrer no momento da execução, inclusive no procedimento técnico.
+- Quando a operação for bloqueada por essa proteção, o e-mail, as credenciais, as sessões e os links da conta devem permanecer inalterados.
+- Operações simultâneas de correção de e-mail, desativação ou remoção de papel não devem contornar a proteção.
+
+### Critérios de aceite da proteção na correção de e-mail
+
+- **CA65:** a correção do e-mail do último Administrador apto ao acesso deve ser recusada.
+- **CA66:** outro Administrador com primeiro acesso ou confirmação de e-mail pendente não deve ser considerado substituto apto.
+- **CA67:** quando outro Administrador permanecer apto ao acesso, a correção deve poder prosseguir, respeitando as demais regras do procedimento.
+- **CA68:** o bloqueio deve ocorrer antes de alterar o e-mail ou invalidar credenciais, sessões e links.
+- **CA69:** operações simultâneas não devem deixar a empresa sem Administrador apto ao acesso.
+
+### Papéis e permissões
+
+- A V1 deve disponibilizar os papéis Colaborador, Gestor e Administrador, com permissões predefinidas.
+- O Administrador deve poder atribuir um ou mais papéis disponíveis a cada usuário.
+- Cada usuário deve manter pelo menos um papel.
+- A V1 não deve permitir criar papéis personalizados nem conceder ou retirar permissões individualmente.
+- Quando houver múltiplos papéis, o usuário deve possuir as permissões correspondentes à sua combinação, respeitando as restrições de cada funcionalidade.
+- O papel Colaborador deve limitar suas operações às próprias despesas, conforme as regras dos requisitos relacionados.
+- O papel Gestor deve limitar as operações de gestão e aprovação à equipe sob sua responsabilidade.
+- O papel Administrador não deve, por si só, conceder permissão para aprovar despesas.
+- A autorização deve ser verificada no servidor, considerando tanto a ação solicitada quanto os registros envolvidos.
+- Alterações de papéis devem respeitar as regras de proteção dos Administradores.
+
+### Critérios de aceite dos papéis e permissões
+
+- **CA70:** o Administrador deve conseguir atribuir um ou mais dos papéis disponíveis a um usuário.
+- **CA71:** uma tentativa de deixar o usuário sem nenhum papel deve ser recusada.
+- **CA72:** tentativas de criar papéis personalizados ou atribuir permissões individuais não devem ser aceitas na V1.
+- **CA73:** um usuário com múltiplos papéis deve conseguir executar as ações correspondentes, respeitando os limites de acesso aos registros.
+- **CA74:** um Colaborador sem outra autorização aplicável não deve conseguir acessar despesas de outro usuário.
+- **CA75:** um Gestor não deve conseguir aprovar despesas de colaboradores fora da equipe sob sua responsabilidade.
+- **CA76:** possuir somente o papel Administrador não deve permitir aprovar despesas.
+- **CA77:** solicitações diretas à API devem respeitar as mesmas regras de autorização aplicadas na interface.
+
+### Vínculo entre Colaborador e Gestor
+
+- Cada Colaborador deve possuir, no máximo, um Gestor responsável.
+- O vínculo pode permanecer pendente no cadastro e durante a elaboração de rascunhos.
+- O envio de despesas para aprovação exige um Gestor responsável ativo e apto ao acesso.
+- Um Gestor deve poder ser responsável por vários colaboradores.
+- A atribuição e a alteração do Gestor responsável devem ser restritas ao Administrador.
+- A conta indicada como responsável deve possuir o papel Gestor.
+- O vínculo deve identificar a equipe sob responsabilidade do Gestor para aplicação das regras de acesso e aprovação.
+- Pertencer ao mesmo departamento, por si só, não deve conceder responsabilidade sobre um Colaborador.
+- Alterar o Gestor responsável não deve modificar os registros históricos de decisões já realizadas.
+
+### Critérios de aceite do vínculo
+
+- **CA78:** o Administrador deve conseguir atribuir um Gestor responsável a um Colaborador.
+- **CA79:** o sistema não deve permitir mais de um Gestor responsável simultaneamente para o mesmo Colaborador.
+- **CA80:** o sistema deve permitir vincular vários colaboradores ao mesmo Gestor.
+- **CA81:** uma conta sem o papel Gestor não deve ser aceita como responsável.
+- **CA82:** usuários sem autorização de Administrador não devem conseguir alterar o vínculo.
+- **CA83:** a alteração do responsável deve preservar a identificação de quem realizou aprovações e rejeições anteriores.
+
+### Obrigatoriedade do Gestor no envio para aprovação
+
+Considera-se Gestor apto ao acesso uma conta que possua o papel Gestor, esteja ativa, tenha concluído a definição de senha e não possua confirmação de e-mail pendente. Não é necessário que esteja com uma sessão aberta.
+
+- A ausência de Gestor responsável não deve impedir o cadastro do Colaborador nem a criação e edição de rascunhos.
+- Antes de permitir o envio de uma despesa para aprovação, o servidor deve verificar se há um Gestor responsável ativo e apto ao acesso.
+- Quando essa condição não for atendida, o envio deve ser bloqueado, preservando o rascunho e seus comprovantes.
+- O aplicativo deve informar que é necessário solicitar ao Administrador a regularização do Gestor responsável.
+- A verificação deve utilizar a situação vigente do vínculo e da conta do Gestor.
+
+### Critérios de aceite da obrigatoriedade do Gestor
+
+- **CA88:** o Administrador deve conseguir cadastrar um Colaborador sem Gestor responsável.
+- **CA89:** um Colaborador sem Gestor responsável deve conseguir criar e editar rascunhos, respeitando as demais regras.
+- **CA90:** o envio para aprovação deve ser recusado quando não houver Gestor responsável ou quando ele não estiver ativo e apto ao acesso.
+- **CA91:** o bloqueio deve preservar o rascunho e seus comprovantes e orientar o Colaborador a procurar o Administrador.
+- **CA92:** após a regularização do vínculo, uma nova tentativa deve poder prosseguir, desde que as demais condições de envio sejam atendidas.
+
+### Requisito relacionado
+
+O RF11 — Enviar despesa deve aplicar a verificação do Gestor responsável definida nesta seção.
+
+
+### Troca de Gestor e aprovações pendentes
+
+- A alteração do Gestor responsável deve ser realizada pelo Administrador.
+- Quando houver aprovações pendentes, o novo Gestor deve estar ativo e apto ao acesso para receber essas solicitações.
+- A troca deve encaminhar ao novo Gestor as aprovações pendentes do Colaborador.
+- O encaminhamento não deve aprovar, rejeitar ou exigir novo envio das despesas pelo Colaborador.
+- O Gestor anterior deve deixar de poder decidir sobre as solicitações transferidas.
+- Decisões concluídas antes da troca devem permanecer inalteradas, preservando responsável, data, decisão e comentário.
+- A mudança deve registrar o Colaborador, os Gestores anterior e novo, o Administrador executor, a data e hora e as solicitações transferidas.
+- O servidor deve verificar o responsável vigente antes de aceitar uma decisão de aprovação ou rejeição.
+
+### Critérios de aceite da troca de Gestor
+
+- **CA93:** quando o Administrador substituir o Gestor por outro ativo e apto ao acesso, as aprovações pendentes devem ficar disponíveis para decisão do novo responsável.
+- **CA94:** solicitações transferidas devem continuar pendentes, sem exigir reenvio pelo Colaborador.
+- **CA95:** tentativas do Gestor anterior de decidir sobre uma solicitação já transferida devem ser recusadas, inclusive a partir de uma tela desatualizada.
+- **CA96:** aprovações e rejeições concluídas antes da troca devem preservar seus dados históricos.
+- **CA97:** a transferência deve possuir registro dos envolvidos, do momento da alteração e das solicitações afetadas.
+- **CA98:** quando houver aprovações pendentes, a troca para um Gestor que não esteja ativo e apto ao acesso deve ser recusada.
+- **CA99:** uma decisão concluída antes da efetivação da troca não deve ser transferida como pendente; uma decisão posterior deve respeitar o novo responsável.
+
+### Requisito relacionado
+
+O RF12 — Aprovação simples deve respeitar a responsabilidade vigente e as transferências definidas nesta seção.
+
+
+### Desativação de Gestor sem substituto
+
+- A existência de colaboradores vinculados ou de aprovações pendentes não deve impedir a desativação de um Gestor.
+- A desativação deve respeitar as demais proteções de contas, inclusive quando o usuário também possuir o papel Administrador.
+- Os vínculos dos colaboradores com o Gestor desativado devem ser preservados até sua substituição.
+- As aprovações existentes devem permanecer pendentes, sem aprovação, rejeição ou cancelamento automático.
+- O Gestor desativado não deve conseguir acessar ou decidir sobre as solicitações.
+- Novos envios dos colaboradores vinculados devem ser bloqueados enquanto não houver Gestor responsável ativo e apto ao acesso.
+- O Administrador deve conseguir identificar os colaboradores vinculados ao Gestor inativo e as aprovações que precisam de regularização.
+- Ao atribuir um substituto ativo e apto ao acesso, o sistema deve aplicar as regras de transferência das aprovações pendentes.
+- A desativação e a posterior substituição devem preservar o histórico das despesas e das decisões já concluídas.
+
+### Critérios de aceite da desativação sem substituto
+
+- **CA100:** o Administrador deve conseguir desativar um Gestor com colaboradores vinculados e aprovações pendentes, desde que as demais proteções sejam atendidas.
+- **CA101:** após a desativação, as solicitações existentes devem permanecer pendentes e conservar seus dados e comprovantes.
+- **CA102:** o Gestor desativado não deve conseguir aprovar ou rejeitar solicitações.
+- **CA103:** novos envios dos colaboradores vinculados devem ser recusados, preservando seus rascunhos e orientando a regularização do responsável.
+- **CA104:** o Administrador deve conseguir identificar os vínculos e as aprovações afetados pela desativação.
+- **CA105:** após a atribuição de um substituto apto, as solicitações pendentes devem ser transferidas sem exigir reenvio pelo Colaborador.
+
+### Vínculo do Colaborador com departamento
+
+- O Colaborador deve poder estar vinculado a, no máximo, um departamento por vez.
+- O vínculo com departamento deve ser opcional.
+- A atribuição, alteração e remoção do vínculo devem ser restritas ao Administrador.
+- O departamento selecionado deve pertencer à empresa cadastrada.
+- A ausência de departamento não deve impedir o cadastro do Colaborador, a elaboração de rascunhos ou o envio de despesas, desde que as demais regras sejam atendidas.
+- O vínculo com departamento não deve conceder permissões de acesso ou aprovação.
+- A alteração ou remoção do departamento não deve modificar automaticamente o Gestor responsável nem transferir aprovações pendentes.
+- O cadastro e a manutenção dos departamentos devem seguir o RF04 — Departamentos.
+
+### Critérios de aceite do vínculo com departamento
+
+- **CA106:** o Administrador deve conseguir vincular um Colaborador a um departamento cadastrado da empresa.
+- **CA107:** uma tentativa de manter mais de um departamento simultaneamente para o mesmo Colaborador deve ser recusada.
+- **CA108:** o Administrador deve conseguir cadastrar e manter um Colaborador sem departamento.
+- **CA109:** a ausência de departamento não deve, por si só, impedir o envio de uma despesa para aprovação.
+- **CA110:** usuários sem autorização de Administrador não devem conseguir alterar o vínculo.
+- **CA111:** a atribuição, alteração ou remoção do departamento deve preservar o Gestor responsável e a distribuição das aprovações pendentes.
+- **CA112:** pertencer ao mesmo departamento não deve conceder acesso às despesas de outros colaboradores.
+
+### Associação entre conta e cadastro de colaborador
+
+- Toda conta que possuir o papel Colaborador deve ter um cadastro de colaborador associado.
+- O cadastro de colaborador deve ser criado quando o papel Colaborador for atribuído à conta pela primeira vez.
+- Cada conta deve possuir, no máximo, um cadastro de colaborador, e cada cadastro deve estar associado a uma única conta.
+- A atribuição do papel e a criação da associação devem ser concluídas de forma consistente, sem deixar uma conta com papel Colaborador e sem o cadastro correspondente.
+- O cadastro de colaborador deve pertencer à mesma empresa da conta.
+- Os vínculos com departamento e Gestor responsável devem ser associados ao cadastro de colaborador.
+- Nome e e-mail devem ser consultados a partir da conta associada, sem cadastro independente desses dados no colaborador.
+- Contas que nunca receberam o papel Colaborador não devem exigir um cadastro de colaborador.
+- A V1 não deve exigir matrícula, CPF ou dados trabalhistas para essa associação.
+
+### Critérios de aceite da associação
+
+- **CA113:** ao atribuir o papel Colaborador pela primeira vez, o sistema deve criar e associar o cadastro de colaborador.
+- **CA114:** uma falha na criação da associação não deve deixar a conta com o papel Colaborador sem o cadastro correspondente.
+- **CA115:** o sistema deve impedir a associação de mais de um cadastro de colaborador à mesma conta ou do mesmo cadastro a contas diferentes.
+- **CA116:** a conta e o cadastro de colaborador devem pertencer à mesma empresa.
+- **CA117:** uma conta exclusivamente administrativa deve poder existir sem cadastro de colaborador.
+- **CA118:** o cadastro de colaborador deve utilizar o nome e o e-mail da conta associada, sem exigir preenchimento duplicado.
+- **CA119:** a associação não deve exigir matrícula, CPF ou dados trabalhistas na V1.
+
+### Remoção e reatribuição do papel Colaborador
+
+- A remoção do papel Colaborador deve retirar as permissões concedidas por esse papel.
+- A operação deve preservar o cadastro de colaborador, sua associação com a conta e seus registros históricos.
+- Despesas, comprovantes, reembolsos e decisões anteriores não devem ser excluídos pela remoção do papel.
+- Os demais papéis da conta devem ser preservados, com suas respectivas permissões e restrições.
+- A remoção deve respeitar a regra de que toda conta precisa manter pelo menos um papel.
+- A reatribuição do papel Colaborador deve reutilizar o cadastro existente, sem criar outro.
+- A reatribuição não deve reativar uma conta inativa nem dispensar as verificações de Gestor responsável e demais condições necessárias para enviar despesas.
+
+### Critérios de aceite da remoção e reatribuição
+
+- **CA120:** após a remoção, o usuário não deve conseguir executar ações cuja autorização dependia exclusivamente do papel Colaborador.
+- **CA121:** a remoção deve preservar o cadastro de colaborador, sua associação com a conta e os registros existentes.
+- **CA122:** a operação deve preservar os demais papéis atribuídos à conta.
+- **CA123:** uma tentativa de remover o papel Colaborador quando ele for o único papel da conta deve ser recusada.
+- **CA124:** ao reatribuir o papel, o sistema deve reutilizar o mesmo cadastro de colaborador.
+- **CA125:** a reatribuição a uma conta inativa não deve liberar seu acesso.
+- **CA126:** novos envios após a reatribuição devem continuar sujeitos à verificação do Gestor responsável e às demais regras aplicáveis.
+
+### Ponto a detalhar
+
+- Tratamento das despesas em rascunho ou em processamento quando o papel Colaborador for removido.
+
+### Despesas existentes após a remoção do papel Colaborador
+
+- A remoção do papel Colaborador deve preservar as despesas em rascunho e seus comprovantes.
+- Enquanto estiver sem esse papel, o usuário não deve poder editar ou enviar seus rascunhos utilizando permissões anteriormente concedidas pelo papel Colaborador.
+- Despesas já enviadas devem continuar no fluxo de aprovação e reembolso, respeitando as demais regras do sistema.
+- A remoção do papel não deve aprovar, rejeitar, cancelar ou marcar despesas como pagas.
+- Gestores e demais responsáveis autorizados devem poder continuar o tratamento das solicitações existentes.
+- Após a reatribuição do papel, o usuário deve poder retomar seus rascunhos, desde que sua conta esteja ativa e as demais condições de acesso sejam atendidas.
+- O envio de um rascunho retomado deve utilizar as regras e os vínculos vigentes no momento da solicitação.
+
+### Critérios de aceite das despesas existentes
+
+- **CA127:** a remoção do papel deve preservar os rascunhos e os comprovantes associados.
+- **CA128:** enquanto o papel estiver removido, tentativas de editar ou enviar rascunhos com base nas permissões desse papel devem ser recusadas pelo servidor.
+- **CA129:** despesas já enviadas devem manter seu estado e continuar disponíveis aos responsáveis autorizados pelo processamento.
+- **CA130:** a remoção do papel não deve produzir uma decisão de aprovação, rejeição, cancelamento ou pagamento.
+- **CA131:** após a reatribuição do papel, os rascunhos anteriores devem poder ser retomados, respeitando as condições de acesso.
+- **CA132:** o envio de um rascunho retomado deve validar o Gestor responsável e as demais condições vigentes, sem reutilizar autorizações antigas.
+
+### Efeito da alteração de papéis sobre as sessões
+
+- A inclusão ou remoção de qualquer papel deve revogar todas as sessões existentes da conta afetada.
+- As credenciais dessas sessões devem deixar de permitir acesso à API e renovação.
+- O usuário deve realizar nova autenticação para utilizar as permissões resultantes da alteração.
+- A nova autenticação deve respeitar a situação da conta e eventuais pendências de primeiro acesso ou confirmação de e-mail.
+- Salvar os mesmos papéis, sem alteração efetiva, não deve provocar revogação de sessões.
+- A alteração de papéis e a revogação das sessões devem ser efetivadas de forma consistente. A operação não deve informar sucesso se alguma dessas etapas falhar.
+- Ao identificar a revogação, o aplicativo deve limpar as credenciais e os dados sensíveis temporários da sessão e solicitar novo login.
+- A operação deve registrar a conta afetada, o Administrador responsável, a data e hora e os papéis anteriores e posteriores.
+- Todas as alterações devem respeitar as proteções do último Administrador apto ao acesso e a exigência de pelo menos um papel por conta.
+
+### Critérios de aceite da alteração de papéis
+
+- **CA133:** incluir ou remover um papel deve revogar todas as sessões existentes da conta afetada.
+- **CA134:** credenciais anteriores à alteração devem ser recusadas nas tentativas de acesso à API e de renovação.
+- **CA135:** após nova autenticação válida, o usuário deve possuir as permissões correspondentes aos papéis atuais, respeitando os limites de acesso aos registros.
+- **CA136:** salvar uma atribuição de papéis sem mudanças não deve encerrar sessões.
+- **CA137:** falhas na alteração ou na revogação devem impedir a confirmação de sucesso e não devem deixar sessões operando com permissões retiradas.
+- **CA138:** a alteração deve possuir histórico com responsável, momento da operação e papéis anteriores e posteriores.
+- **CA139:** alterar papéis não deve reativar contas nem dispensar pendências de acesso.
+
+### Remoção do papel Gestor
+
+- A remoção do papel Gestor deve ser bloqueada enquanto houver colaboradores sob sua responsabilidade ou aprovações pendentes atribuídas à conta.
+- Antes da remoção, o Administrador deve transferir essas responsabilidades para outro Gestor ativo e apto ao acesso.
+- A transferência deve respeitar as regras de vínculo, encaminhamento de aprovações pendentes e impedimento de autoaprovação.
+- Decisões já concluídas devem permanecer associadas ao responsável original, sem impedir a remoção do papel.
+- Após a regularização das responsabilidades, a remoção deve respeitar a exigência de pelo menos um papel por conta.
+- A remoção efetivada deve revogar todas as sessões da conta, conforme as regras de alteração de papéis.
+- Quando for necessário bloquear imediatamente o acesso, a conta poderá ser desativada conforme as regras de desativação, sem depender da transferência prévia.
+
+### Critérios de aceite da remoção do papel Gestor
+
+- **CA140:** a tentativa de remover o papel Gestor de uma conta com colaboradores vinculados ou aprovações pendentes deve ser recusada.
+- **CA141:** o bloqueio deve informar quais responsabilidades precisam ser regularizadas antes da remoção.
+- **CA142:** após a transferência dos colaboradores e das aprovações pendentes, a remoção deve ser permitida, desde que as demais proteções sejam atendidas.
+- **CA143:** a existência de decisões históricas concluídas não deve impedir a remoção nem alterar sua autoria.
+- **CA144:** se Gestor for o único papel da conta, sua remoção deve ser recusada até que outro papel seja atribuído.
+- **CA145:** a remoção concluída deve revogar as sessões da conta.
+- **CA146:** uma tentativa de remoção bloqueada não deve alterar os papéis nem revogar sessões.
+- **CA147:** a verificação e a remoção devem impedir que operações simultâneas deixem colaboradores ou aprovações pendentes atribuídos a uma conta sem o papel Gestor.
