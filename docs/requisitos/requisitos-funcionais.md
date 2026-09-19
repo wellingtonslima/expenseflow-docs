@@ -1041,3 +1041,129 @@ O RF12 — Aprovação simples deve respeitar a responsabilidade vigente e as tr
 - **CA145:** a remoção concluída deve revogar as sessões da conta.
 - **CA146:** uma tentativa de remoção bloqueada não deve alterar os papéis nem revogar sessões.
 - **CA147:** a verificação e a remoção devem impedir que operações simultâneas deixem colaboradores ou aprovações pendentes atribuídos a uma conta sem o papel Gestor.
+
+## RF04 — Departamentos
+
+### Objetivo
+
+Permitir que o Administrador mantenha os departamentos da empresa para organizar os colaboradores.
+
+### Ator
+
+Administrador.
+
+### Etapa
+
+A V1 deve disponibilizar um cadastro simples, sem hierarquia entre departamentos.
+
+### Dados do departamento
+
+| Campo | Obrigatoriedade | Regra |
+|---|---|---|
+| Nome | Obrigatório | Deve ser único na empresa |
+| Descrição | Opcional | Explica a finalidade da área |
+| Situação | Obrigatório | Ativo ou inativo; ativo por padrão |
+| Empresa | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
+
+### Regras do cadastro
+
+- O cadastro deve ser restrito ao Administrador.
+- O nome deve ser preenchido e não pode ser composto somente por espaços.
+- A ausência de descrição não deve impedir o cadastro.
+- O departamento deve ser criado como ativo por padrão.
+- A empresa deve ser atribuída automaticamente.
+- A V1 não deve permitir definir departamentos superiores ou subdepartamentos.
+- O departamento deve servir à organização dos colaboradores, sem conceder permissões ou definir automaticamente o Gestor responsável.
+- A associação dos colaboradores deve seguir as regras do RF03 — Usuários.
+
+### Critérios de aceite do cadastro
+
+- **CA01:** um Administrador autenticado deve conseguir cadastrar um departamento com nome válido e único.
+- **CA02:** a ausência de nome ou o preenchimento somente com espaços deve impedir o cadastro.
+- **CA03:** o cadastro sem descrição deve ser permitido.
+- **CA04:** o departamento deve ser criado como ativo e vinculado automaticamente à empresa.
+- **CA05:** o sistema deve recusar o cadastro de um nome já utilizado na empresa, conforme a regra de comparação de nomes.
+- **CA06:** usuários sem autorização de Administrador não devem conseguir cadastrar departamentos, inclusive pela API.
+- **CA07:** a V1 não deve disponibilizar associação hierárquica entre departamentos.
+
+### Normalização e unicidade do nome
+
+- O sistema deve remover espaços em branco no início e no fim do nome.
+- Sequências de espaços entre palavras devem ser reduzidas a um único espaço.
+- O nome normalizado deve preservar as letras maiúsculas e minúsculas informadas para exibição.
+- A comparação de nomes deve desconsiderar diferenças entre letras maiúsculas e minúsculas.
+- A verificação de duplicidade deve considerar todos os departamentos da empresa, ativos e inativos.
+- As regras devem ser aplicadas tanto no cadastro quanto na alteração do nome.
+- Na edição, o próprio departamento deve ser desconsiderado na busca por outro registro com o mesmo nome.
+- O servidor deve garantir a unicidade, inclusive diante de solicitações simultâneas.
+
+### Critérios de aceite da normalização e unicidade
+
+- **CA08:** espaços no início e no fim devem ser removidos antes da validação e do armazenamento.
+- **CA09:** espaços consecutivos entre palavras devem ser reduzidos a um único espaço.
+- **CA10:** nomes que diferem apenas por maiúsculas, minúsculas ou espaços normalizados devem ser considerados duplicados.
+- **CA11:** um nome utilizado por departamento inativo deve impedir a criação de outro departamento com o mesmo nome.
+- **CA12:** a edição deve permitir manter o próprio nome ou ajustar apenas sua capitalização, desde que não haja conflito com outro departamento.
+- **CA13:** uma tentativa de renomear um departamento para o nome de outro deve ser recusada, preservando o valor anterior.
+- **CA14:** duas solicitações simultâneas com nomes equivalentes não devem gerar departamentos duplicados.
+
+### Alteração dos dados do departamento
+
+- O Administrador deve poder alterar o nome e a descrição do departamento.
+- O nome deve permanecer obrigatório e único na empresa, respeitando as regras de normalização e comparação.
+- A descrição deve permanecer opcional, podendo ser removida.
+- A alteração deve preservar o identificador do departamento e os vínculos dos colaboradores.
+- A edição do nome ou da descrição não deve modificar a situação ativa ou inativa.
+- A alteração não deve modificar os Gestores responsáveis, as permissões dos usuários ou a distribuição das aprovações pendentes.
+
+### Critérios de aceite da alteração
+
+- **CA15:** um Administrador autenticado deve conseguir alterar o nome e a descrição do departamento.
+- **CA16:** uma tentativa de salvar um nome vazio ou duplicado deve ser recusada, preservando os dados anteriores.
+- **CA17:** o Administrador deve conseguir remover a descrição.
+- **CA18:** após a alteração, o departamento deve manter seu identificador e os mesmos colaboradores vinculados.
+- **CA19:** editar nome ou descrição não deve ativar nem desativar o departamento.
+- **CA20:** a alteração deve preservar os vínculos com Gestores, as permissões e as aprovações pendentes.
+- **CA21:** tentativas de edição por usuários sem autorização de Administrador devem ser recusadas, inclusive pela API.
+
+### Desativação de departamentos
+
+- O Administrador deve poder desativar um departamento, mesmo que existam colaboradores vinculados.
+- A desativação deve preservar o cadastro e os vínculos existentes.
+- Departamentos inativos não devem aceitar novas associações de colaboradores.
+- Os vínculos existentes devem continuar visíveis ao Administrador, com indicação de que o departamento está inativo.
+- O Administrador deve poder transferir os colaboradores para outro departamento ativo ou remover seu vínculo com departamento.
+- A desativação não deve bloquear o acesso dos colaboradores nem impedir, por si só, o registro ou envio de despesas.
+- A desativação e as transferências de departamento não devem modificar o Gestor responsável, as permissões ou a distribuição das aprovações pendentes.
+- A restrição de novas associações deve ser verificada no servidor.
+
+### Critérios de aceite da desativação
+
+- **CA22:** um Administrador deve conseguir desativar um departamento com ou sem colaboradores vinculados.
+- **CA23:** após a desativação, os vínculos existentes devem permanecer registrados e disponíveis para consulta administrativa.
+- **CA24:** uma tentativa de associar um Colaborador a um departamento inativo deve ser recusada, inclusive pela API.
+- **CA25:** o Administrador deve conseguir transferir um Colaborador de um departamento inativo para outro ativo ou remover o vínculo.
+- **CA26:** a desativação do departamento não deve desativar as contas dos colaboradores nem impedir suas operações por esse motivo.
+- **CA27:** a desativação deve preservar os Gestores responsáveis, as permissões e as aprovações pendentes.
+- **CA28:** ao consultar um vínculo existente com departamento inativo, o Administrador deve conseguir identificar essa situação.
+- **CA29:** salvar outros dados de um Colaborador sem alterar seu vínculo existente não deve ser impedido apenas porque o departamento está inativo.
+
+### Reativação de departamentos
+
+- O Administrador deve poder reativar um departamento inativo.
+- A reativação deve preservar o identificador, o nome, a descrição e os vínculos existentes no momento da operação.
+- Após a reativação, o departamento deve voltar a aceitar associações de colaboradores.
+- Colaboradores transferidos ou desvinculados durante a inatividade não devem retornar automaticamente.
+- A reativação não deve alterar a situação das contas, os Gestores responsáveis, as permissões ou as aprovações pendentes.
+- A operação deve respeitar as regras de unicidade do nome já definidas.
+
+### Critérios de aceite da reativação
+
+- **CA30:** um Administrador autenticado deve conseguir reativar um departamento inativo.
+- **CA31:** a reativação deve manter o mesmo identificador e os dados cadastrais vigentes.
+- **CA32:** os colaboradores ainda vinculados devem permanecer associados após a reativação.
+- **CA33:** colaboradores transferidos ou desvinculados não devem ser reassociados automaticamente.
+- **CA34:** após a reativação, novas associações devem ser permitidas, respeitando as demais regras de vínculo.
+- **CA35:** a reativação não deve modificar contas, Gestores responsáveis, permissões ou aprovações pendentes.
+- **CA36:** tentativas de reativação por usuários sem autorização de Administrador devem ser recusadas, inclusive pela API.
+
