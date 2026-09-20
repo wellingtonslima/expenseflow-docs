@@ -1380,3 +1380,202 @@ A V1 deve disponibilizar cadastro e associação de centros de custo às despesa
 O RF07 — Cadastro de despesa e o RF11 — Enviar despesa devem
 aplicar as regras de associação e obrigatoriedade definidas
 neste requisito.
+
+
+## RF06 — Categorias de despesa
+
+### Objetivo
+
+Permitir a classificação das despesas conforme a natureza do gasto, utilizando categorias mantidas pelo Administrador.
+
+### Ator
+
+Administrador.
+
+### Etapa
+
+A V1 deve disponibilizar um cadastro simples de categorias, sem subcategorias e sem configuração de limites de gastos.
+
+### Dados da categoria
+
+| Campo | Obrigatoriedade | Regra |
+|---|---|---|
+| Nome | Obrigatório | Deve ser único na empresa |
+| Descrição | Opcional | Orienta quando utilizar a categoria |
+| Situação | Obrigatório | Ativa ou inativa; ativa por padrão |
+| Empresa | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
+
+### Regras do cadastro
+
+- O cadastro deve ser restrito ao Administrador.
+- O nome deve ser preenchido e não pode ser composto somente por espaços.
+- A ausência de descrição não deve impedir o cadastro.
+- A categoria deve ser criada como ativa e vinculada automaticamente à empresa.
+- Não deve ser exigido um código digitado pelo Administrador.
+- A V1 não deve permitir hierarquia entre categorias.
+- A categoria deve identificar a natureza do gasto, independentemente do centro de custo ou do departamento do Colaborador.
+- O Administrador deve poder cadastrar categorias além das opções iniciais.
+
+### Categorias iniciais
+
+Na preparação do ambiente, devem ser criadas as seguintes categorias ativas:
+
+- Alimentação.
+- Hospedagem.
+- Transporte.
+- Combustível.
+- Estacionamento.
+- Material.
+- Telefonia.
+- Outros.
+
+A repetição do procedimento de preparação não deve duplicar as categorias já criadas.
+
+### Critérios de aceite do cadastro
+
+- **CA01:** um Administrador autenticado deve conseguir cadastrar uma categoria com nome válido e único.
+- **CA02:** a ausência de nome ou o preenchimento somente com espaços deve impedir o cadastro.
+- **CA03:** o cadastro sem descrição deve ser permitido.
+- **CA04:** a categoria deve ser criada como ativa e vinculada automaticamente à empresa.
+- **CA05:** uma tentativa de cadastrar um nome já utilizado deve ser recusada, conforme as regras de comparação de nomes.
+- **CA06:** o cadastro não deve exigir código nem vínculo com categoria superior.
+- **CA07:** a preparação inicial deve disponibilizar as oito categorias previstas.
+- **CA08:** repetir o procedimento de preparação não deve duplicar as categorias iniciais.
+- **CA09:** o Administrador deve conseguir criar categorias adicionais.
+- **CA10:** usuários sem autorização de Administrador não devem conseguir cadastrar categorias, inclusive pela API.
+
+### Normalização e unicidade do nome
+
+- O sistema deve remover espaços em branco no início e no fim do nome.
+- Sequências de espaços entre palavras devem ser reduzidas a um único espaço.
+- O nome normalizado deve preservar as letras maiúsculas e minúsculas informadas para exibição.
+- A comparação deve desconsiderar diferenças entre letras maiúsculas e minúsculas.
+- A verificação de duplicidade deve considerar categorias ativas e inativas da empresa.
+- As regras devem ser aplicadas no cadastro e na alteração do nome.
+- Na edição, o próprio cadastro deve ser desconsiderado na busca por outro registro com o mesmo nome.
+- O servidor deve garantir a unicidade, inclusive diante de solicitações simultâneas.
+
+### Critérios de aceite da normalização e unicidade
+
+- **CA11:** espaços no início e no fim devem ser removidos antes da validação e do armazenamento.
+- **CA12:** espaços consecutivos entre palavras devem ser reduzidos a um único espaço.
+- **CA13:** nomes que diferem apenas por maiúsculas, minúsculas ou espaços normalizados devem ser considerados duplicados.
+- **CA14:** um nome utilizado por categoria inativa deve impedir a criação de outra categoria com nome equivalente.
+- **CA15:** a edição deve permitir manter o próprio nome ou ajustar sua capitalização, desde que não haja conflito com outra categoria.
+- **CA16:** uma tentativa de renomear a categoria para o nome de outra deve ser recusada, preservando os dados anteriores.
+- **CA17:** solicitações simultâneas com nomes equivalentes não devem gerar categorias duplicadas.
+
+### Alteração dos dados da categoria
+
+- O Administrador deve poder alterar o nome e a descrição de categorias, inclusive das criadas na preparação inicial.
+- O nome deve permanecer obrigatório e único, respeitando as regras de normalização e comparação.
+- A descrição deve permanecer opcional, podendo ser removida.
+- A alteração deve preservar o identificador interno, a empresa, a situação ativa ou inativa e os vínculos com despesas.
+- As consultas das despesas vinculadas devem apresentar o nome atualizado da categoria.
+- A alteração não deve modificar valores, comprovantes, estados ou decisões de aprovação das despesas.
+- A edição deve ser utilizada para corrigir ou esclarecer a mesma categoria. Uma natureza de gasto diferente deve ser representada por um novo cadastro.
+
+### Critérios de aceite da alteração
+
+- **CA18:** um Administrador autenticado deve conseguir alterar o nome e a descrição, inclusive de categorias iniciais e de categorias com despesas vinculadas.
+- **CA19:** uma tentativa de salvar nome vazio, composto somente por espaços ou equivalente ao de outra categoria deve ser recusada, preservando os dados anteriores.
+- **CA20:** a remoção da descrição deve ser permitida.
+- **CA21:** a alteração deve preservar o identificador e os vínculos existentes.
+- **CA22:** consultas atualizadas das despesas vinculadas devem apresentar o novo nome da categoria.
+- **CA23:** a edição não deve alterar a situação ativa ou inativa da categoria nem os dados e estados das despesas.
+- **CA24:** tentativas de edição por usuários sem autorização de Administrador devem ser recusadas, inclusive pela API.
+
+### Desativação e tratamento das despesas vinculadas
+
+- O Administrador deve poder desativar qualquer categoria, inclusive as iniciais, mesmo que existam despesas vinculadas.
+- A desativação deve preservar o cadastro e os vínculos existentes.
+- Categorias inativas não devem aceitar novas associações de despesas.
+- Despesas já enviadas devem continuar seu fluxo de aprovação e reembolso, sem alteração automática de estado ou categoria.
+- Rascunhos vinculados devem ser preservados, mas seu envio deve ser bloqueado enquanto a categoria estiver inativa.
+- O Colaborador deve poder selecionar outra categoria ativa em seu rascunho antes de enviá-lo.
+- A edição de outros dados do rascunho deve continuar permitida, respeitando as demais regras.
+- Nas consultas das despesas existentes, a categoria deve continuar sendo exibida, com indicação de sua situação inativa.
+- O servidor deve verificar a situação da categoria tanto na associação quanto no envio para aprovação.
+
+### Critérios de aceite da desativação
+
+- **CA25:** um Administrador deve conseguir desativar uma categoria com ou sem despesas vinculadas, inclusive uma categoria inicial.
+- **CA26:** a desativação deve preservar o cadastro, as despesas e seus vínculos.
+- **CA27:** tentativas de associar uma despesa a uma categoria inativa devem ser recusadas, inclusive pela API.
+- **CA28:** despesas já enviadas devem continuar disponíveis para processamento, sem mudança automática de estado ou classificação.
+- **CA29:** o envio de um rascunho com categoria inativa deve ser recusado, preservando seus dados e comprovantes.
+- **CA30:** o bloqueio deve orientar o Colaborador a selecionar uma categoria ativa.
+- **CA31:** após selecionar outra categoria ativa, o envio deve poder prosseguir, desde que as demais condições sejam atendidas.
+- **CA32:** a inatividade da categoria não deve, por si só, impedir a edição dos demais dados do rascunho.
+- **CA33:** a consulta de uma despesa vinculada deve identificar a categoria e sua situação inativa.
+- **CA34:** se a desativação ocorrer antes da efetivação do envio, o servidor deve impedir a submissão, mesmo que a tela ainda apresente a categoria como ativa.
+
+### Reativação da categoria
+
+- O Administrador deve poder reativar uma categoria inativa.
+- A reativação deve preservar o identificador interno, o nome, a descrição, a empresa e os vínculos existentes.
+- Após a reativação, a categoria deve voltar a aceitar associações de despesas.
+- Rascunhos ainda vinculados devem deixar de ser bloqueados pela inatividade da categoria, permanecendo sujeitos às demais condições de envio.
+- Despesas transferidas para outra categoria não devem retornar automaticamente à categoria reativada.
+- A reativação não deve enviar, aprovar, rejeitar ou marcar despesas como pagas automaticamente.
+
+### Critérios de aceite da reativação
+
+- **CA35:** um Administrador autenticado deve conseguir reativar uma categoria inativa.
+- **CA36:** a reativação deve preservar os dados cadastrais e os vínculos existentes no momento da operação.
+- **CA37:** após a reativação, novas associações de despesas devem ser permitidas, respeitando as demais regras.
+- **CA38:** um rascunho ainda vinculado deve poder ser enviado se todas as condições forem atendidas, sem exigir nova seleção da mesma categoria.
+- **CA39:** despesas transferidas para outra categoria devem manter sua classificação atual.
+- **CA40:** a reativação não deve alterar automaticamente o estado das despesas.
+- **CA41:** tentativas de reativação por usuários sem autorização de Administrador devem ser recusadas, inclusive pela API.
+
+### Obrigatoriedade da categoria nas despesas
+
+- Uma despesa em rascunho deve poder ser salva sem categoria.
+- Cada despesa deve estar associada a, no máximo, uma categoria na V1.
+- O envio para aprovação deve exigir exatamente uma categoria ativa da empresa.
+- Enquanto a despesa estiver em rascunho, o Colaborador deve poder selecionar, substituir ou remover sua categoria, respeitando suas permissões.
+- A remoção da categoria deve preservar o rascunho, mas impedir seu envio até a seleção de uma categoria ativa.
+- A categoria não deve ser determinada automaticamente pelo centro de custo.
+- O servidor deve verificar a associação e a situação da categoria no momento do envio.
+
+### Critérios de aceite da obrigatoriedade
+
+- **CA42:** o Colaborador deve conseguir salvar um rascunho sem categoria, respeitando as demais regras.
+- **CA43:** uma tentativa de associar mais de uma categoria à mesma despesa deve ser recusada.
+- **CA44:** o envio de uma despesa sem categoria deve ser bloqueado, preservando o rascunho e orientando o preenchimento.
+- **CA45:** o envio deve exigir uma categoria ativa e pertencente à empresa.
+- **CA46:** o Colaborador deve conseguir substituir ou remover a categoria de seus rascunhos, respeitando as demais regras.
+- **CA47:** remover a categoria deve preservar o rascunho e impedir seu envio até a regularização.
+- **CA48:** selecionar ou alterar o centro de custo não deve preencher nem modificar automaticamente a categoria.
+- **CA49:** tentativas de envio diretamente pela API devem respeitar a mesma exigência.
+
+### Requisitos relacionados
+
+O RF07 — Cadastro de despesa e o RF11 — Enviar despesa devem aplicar as regras de associação e obrigatoriedade definidas neste requisito.
+
+### Alteração da categoria após o envio
+
+- A inclusão, substituição ou remoção da categoria de uma despesa deve ser permitida somente no estado DRAFT.
+- Após o envio para aprovação, a associação deve permanecer bloqueada para todos os perfis, inclusive Administrador.
+- A rejeição não deve desbloquear automaticamente a alteração da categoria.
+- A desativação da categoria não deve remover nem substituir sua associação às despesas já enviadas.
+- O servidor deve verificar o estado vigente da despesa antes de permitir qualquer alteração da associação.
+- O bloqueio da associação não deve impedir a edição do nome ou da descrição da categoria conforme as regras deste requisito.
+- Um eventual fluxo de correção da classificação após o envio fica previsto para evolução.
+
+### Critérios de aceite do bloqueio após o envio
+
+- **CA50:** após a saída do estado DRAFT, tentativas de incluir, substituir ou remover a categoria devem ser recusadas.
+- **CA51:** o papel Administrador não deve permitir contornar esse bloqueio.
+- **CA52:** a rejeição da despesa não deve liberar a alteração de sua categoria.
+- **CA53:** solicitações diretas à API ou originadas de uma tela desatualizada devem respeitar o estado vigente da despesa.
+- **CA54:** uma alteração recusada deve preservar a associação existente.
+- **CA55:** a desativação da categoria deve preservar sua associação às despesas já enviadas.
+- **CA56:** renomear uma categoria deve manter a mesma associação e apresentar o nome atualizado nas consultas, conforme as regras de edição.
+
+### Evolução futura
+
+- Correção da categoria de despesas após o envio, com autorização e rastreabilidade a definir.
+- Configuração de limites de gastos por categoria, conforme evolução prevista no RF02.
+
