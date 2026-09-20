@@ -1167,3 +1167,216 @@ A V1 deve disponibilizar um cadastro simples, sem hierarquia entre departamentos
 - **CA35:** a reativação não deve modificar contas, Gestores responsáveis, permissões ou aprovações pendentes.
 - **CA36:** tentativas de reativação por usuários sem autorização de Administrador devem ser recusadas, inclusive pela API.
 
+## RF05 — Centros de custo
+
+### Objetivo
+
+Permitir que o Administrador mantenha centros de custo para classificar as despesas e apoiar o acompanhamento dos gastos da empresa.
+
+### Ator
+
+Administrador.
+
+### Etapa
+
+A V1 deve disponibilizar cadastro e associação de centros de custo às despesas, sem configuração de orçamentos ou limites de gastos.
+
+### Dados do centro de custo
+
+| Campo | Obrigatoriedade | Regra |
+|---|---|---|
+| Código | Obrigatório | Deve ser único na empresa |
+| Nome | Obrigatório | Identifica o centro de custo para os usuários |
+| Descrição | Opcional | Explica sua finalidade |
+| Situação | Obrigatório | Ativo ou inativo; ativo por padrão |
+| Empresa | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
+
+### Regras do cadastro
+
+- O cadastro deve ser restrito ao Administrador.
+- Código e nome devem ser preenchidos e não podem ser compostos somente por espaços.
+- A ausência de descrição não deve impedir o cadastro.
+- O código deve identificar unicamente o centro de custo na empresa.
+- Centros de custo diferentes devem poder possuir o mesmo nome, desde que seus códigos sejam distintos.
+- Nas opções de seleção, o sistema deve apresentar código e nome.
+- O cadastro deve ser criado como ativo e vinculado automaticamente à empresa.
+- O centro de custo deve ser independente do cadastro de departamentos.
+- O departamento do Colaborador não deve determinar automaticamente o centro de custo da despesa.
+
+### Critérios de aceite do cadastro
+
+- **CA01:** um Administrador autenticado deve conseguir cadastrar um centro de custo com código único e nome preenchido.
+- **CA02:** a ausência de código ou nome, ou o preenchimento somente com espaços, deve impedir o cadastro.
+- **CA03:** o cadastro sem descrição deve ser permitido.
+- **CA04:** uma tentativa de cadastrar um código já utilizado deve ser recusada, conforme as regras de comparação de códigos.
+- **CA05:** centros de custo com o mesmo nome e códigos distintos devem ser aceitos.
+- **CA06:** as opções de seleção devem apresentar código e nome.
+- **CA07:** o cadastro deve ser criado como ativo e associado automaticamente à empresa.
+- **CA08:** o cadastro não deve exigir vínculo com departamento.
+- **CA09:** usuários sem autorização de Administrador não devem conseguir cadastrar centros de custo, inclusive pela API.
+
+### Formato e unicidade do código
+
+- O código deve conter de 1 a 20 caracteres após a normalização.
+- Devem ser permitidos somente letras de A a Z, números de 0 a 9 e hífen.
+- Letras minúsculas devem ser convertidas para maiúsculas.
+- Espaços em branco no início e no fim devem ser removidos antes da validação.
+- Espaços internos, letras acentuadas e outros caracteres não permitidos devem ser recusados, sem remoção silenciosa.
+- O código deve ser armazenado como texto, preservando zeros à esquerda.
+- Não deve ser exigido um prefixo ou uma sequência específica.
+- A verificação de duplicidade deve utilizar o código normalizado e considerar centros de custo ativos e inativos da empresa.
+- O servidor deve garantir a unicidade, inclusive diante de solicitações simultâneas.
+
+### Critérios de aceite do código
+
+- **CA10:** códigos entre 1 e 20 caracteres, compostos somente por caracteres permitidos, devem atender à validação de formato.
+- **CA11:** espaços no início e no fim devem ser removidos, e letras minúsculas devem ser convertidas para maiúsculas.
+- **CA12:** códigos vazios após a normalização ou com mais de 20 caracteres devem ser recusados.
+- **CA13:** espaços internos, letras acentuadas e símbolos diferentes de hífen devem provocar a recusa do código.
+- **CA14:** códigos equivalentes após a normalização devem ser considerados duplicados.
+- **CA15:** um código utilizado por centro de custo inativo deve impedir seu uso em outro cadastro.
+- **CA16:** códigos com zeros à esquerda devem preservar esses caracteres no armazenamento e na consulta.
+- **CA17:** solicitações simultâneas com códigos equivalentes não devem gerar cadastros duplicados.
+- 
+### Alteração dos dados do centro de custo
+
+- O Administrador deve poder alterar o nome e a descrição.
+- O nome deve permanecer obrigatório, e a descrição deve permanecer opcional, podendo ser removida.
+- O código deve poder ser corrigido somente enquanto não houver despesas vinculadas ao centro de custo.
+- Despesas em qualquer estado, inclusive DRAFT, devem impedir a alteração do código.
+- A correção do código deve respeitar as regras de formato, normalização e unicidade.
+- Na verificação de duplicidade durante a edição, o próprio cadastro deve ser desconsiderado.
+- A edição deve preservar o identificador interno, a empresa, a situação ativa ou inativa e os vínculos existentes.
+- O servidor deve verificar a existência de despesas no momento da alteração, inclusive quando houver operações simultâneas.
+- Salvar os demais dados sem modificar o código normalizado não deve ser impedido pela existência de despesas vinculadas.
+
+### Critérios de aceite da alteração
+
+- **CA18:** um Administrador autenticado deve conseguir alterar o nome e a descrição, mesmo quando houver despesas vinculadas.
+- **CA19:** uma tentativa de deixar o nome vazio ou composto somente por espaços deve ser recusada, preservando os dados anteriores.
+- **CA20:** a remoção da descrição deve ser permitida.
+- **CA21:** a correção do código deve ser permitida quando não houver despesas vinculadas e o novo valor atender às regras aplicáveis.
+- **CA22:** a existência de uma despesa vinculada, inclusive em rascunho, deve impedir a alteração do código.
+- **CA23:** um novo código inválido ou utilizado por outro centro de custo, ativo ou inativo, deve ser recusado.
+- **CA24:** a edição deve preservar o identificador interno e os vínculos das despesas.
+- **CA25:** a existência de despesas não deve impedir a atualização de nome ou descrição quando o código normalizado permanecer inalterado.
+- **CA26:** solicitações diretas à API e operações simultâneas devem respeitar o bloqueio de alteração do código.
+- **CA27:** usuários sem autorização de Administrador não devem conseguir alterar os dados cadastrais.
+
+### Desativação e tratamento das despesas vinculadas
+
+- O Administrador deve poder desativar um centro de custo, mesmo que existam despesas vinculadas.
+- A desativação deve preservar o cadastro e os vínculos existentes.
+- Centros de custo inativos não devem aceitar novas associações de despesas.
+- Despesas já enviadas devem continuar seu fluxo de aprovação e reembolso, sem alteração automática de estado ou de centro de custo.
+- Rascunhos vinculados devem ser preservados, mas seu envio deve ser bloqueado enquanto o centro de custo estiver inativo.
+- O Colaborador deve poder selecionar outro centro de custo ativo em seu rascunho antes de enviá-lo.
+- A edição de outros dados do rascunho deve continuar permitida, respeitando as demais regras.
+- Nas consultas de despesas existentes, o centro de custo deve continuar sendo exibido, com indicação de sua situação inativa.
+- O servidor deve verificar a situação do centro de custo tanto na associação quanto no envio para aprovação.
+
+### Critérios de aceite da desativação
+
+- **CA28:** o Administrador deve conseguir desativar um centro de custo com ou sem despesas vinculadas.
+- **CA29:** a desativação deve preservar o cadastro, as despesas e seus vínculos.
+- **CA30:** tentativas de associar uma despesa a um centro de custo inativo devem ser recusadas, inclusive pela API.
+- **CA31:** despesas já enviadas devem continuar disponíveis para processamento, sem mudança automática de estado ou classificação.
+- **CA32:** o envio de um rascunho com centro de custo inativo deve ser recusado, preservando seus dados e comprovantes.
+- **CA33:** o bloqueio deve orientar o Colaborador a selecionar um centro de custo ativo.
+- **CA34:** após selecionar outro centro de custo ativo, o envio deve poder prosseguir, desde que as demais condições sejam atendidas.
+- **CA35:** a inatividade do centro de custo não deve, por si só, impedir a edição dos demais dados do rascunho.
+- **CA36:** a consulta de uma despesa vinculada deve identificar o centro de custo e sua situação inativa.
+- **CA37:** se a desativação ocorrer antes da efetivação do envio, o servidor deve impedir a submissão, mesmo que a tela ainda apresente o centro de custo como ativo.
+
+### Requisitos relacionados
+
+- **RF07 — Cadastro de despesa:** seleção e alteração do centro de custo.
+- **RF11 — Enviar despesa:** verificação de centro de custo ativo antes do envio.
+
+### Reativação do centro de custo
+
+- O Administrador deve poder reativar um centro de custo inativo.
+- A reativação deve preservar o identificador interno, o código, o nome, a descrição e os vínculos existentes.
+- Após a reativação, o centro de custo deve voltar a aceitar associações de despesas.
+- Rascunhos ainda vinculados devem deixar de ser bloqueados por inatividade do centro de custo, permanecendo sujeitos às demais condições de envio.
+- Despesas que tiveram seu centro de custo alterado não devem retornar automaticamente ao cadastro reativado.
+- A reativação não deve enviar, aprovar, rejeitar ou marcar despesas como pagas automaticamente.
+
+### Critérios de aceite da reativação
+
+- **CA38:** um Administrador autenticado deve conseguir reativar um centro de custo inativo.
+- **CA39:** a reativação deve preservar os dados cadastrais e os vínculos existentes no momento da operação.
+- **CA40:** após a reativação, novas associações de despesas devem ser permitidas, respeitando as demais regras.
+- **CA41:** um rascunho ainda vinculado deve poder ser enviado se todas as condições de envio forem atendidas, sem exigir nova seleção do mesmo centro de custo.
+- **CA42:** despesas transferidas para outro centro de custo devem manter sua classificação atual.
+- **CA43:** a reativação não deve alterar automaticamente o estado das despesas.
+- **CA44:** tentativas de reativação por usuários sem autorização de Administrador devem ser recusadas, inclusive pela API.
+
+### Reativação do centro de custo
+
+- O Administrador deve poder reativar um centro de custo inativo.
+- A reativação deve preservar o identificador interno, o código, o nome, a descrição e os vínculos existentes.
+- Após a reativação, o centro de custo deve voltar a aceitar associações de despesas.
+- Rascunhos ainda vinculados devem deixar de ser bloqueados por inatividade do centro de custo, permanecendo sujeitos às demais condições de envio.
+- Despesas que tiveram seu centro de custo alterado não devem retornar automaticamente ao cadastro reativado.
+- A reativação não deve enviar, aprovar, rejeitar ou marcar despesas como pagas automaticamente.
+
+### Critérios de aceite da reativação
+
+- **CA38:** um Administrador autenticado deve conseguir reativar um centro de custo inativo.
+- **CA39:** a reativação deve preservar os dados cadastrais e os vínculos existentes no momento da operação.
+- **CA40:** após a reativação, novas associações de despesas devem ser permitidas, respeitando as demais regras.
+- **CA41:** um rascunho ainda vinculado deve poder ser enviado se todas as condições de envio forem atendidas, sem exigir nova seleção do mesmo centro de custo.
+- **CA42:** despesas transferidas para outro centro de custo devem manter sua classificação atual.
+- **CA43:** a reativação não deve alterar automaticamente o estado das despesas.
+- **CA44:** tentativas de reativação por usuários sem autorização de Administrador devem ser recusadas, inclusive pela API.
+
+### Reativação do centro de custo
+
+- O Administrador deve poder reativar um centro de custo inativo.
+- A reativação deve preservar o identificador interno, o código, o nome, a descrição e os vínculos existentes.
+- Após a reativação, o centro de custo deve voltar a aceitar associações de despesas.
+- Rascunhos ainda vinculados devem deixar de ser bloqueados por inatividade do centro de custo, permanecendo sujeitos às demais condições de envio.
+- Despesas que tiveram seu centro de custo alterado não devem retornar automaticamente ao cadastro reativado.
+- A reativação não deve enviar, aprovar, rejeitar ou marcar despesas como pagas automaticamente.
+
+### Critérios de aceite da reativação
+
+- **CA38:** um Administrador autenticado deve conseguir reativar um centro de custo inativo.
+- **CA39:** a reativação deve preservar os dados cadastrais e os vínculos existentes no momento da operação.
+- **CA40:** após a reativação, novas associações de despesas devem ser permitidas, respeitando as demais regras.
+- **CA41:** um rascunho ainda vinculado deve poder ser enviado se todas as condições de envio forem atendidas, sem exigir nova seleção do mesmo centro de custo.
+- **CA42:** despesas transferidas para outro centro de custo devem manter sua classificação atual.
+- **CA43:** a reativação não deve alterar automaticamente o estado das despesas.
+- **CA44:** tentativas de reativação por usuários sem autorização de Administrador devem ser recusadas, inclusive pela API.
+
+### Alteração do centro de custo após o envio
+
+- A inclusão, substituição ou remoção do centro de custo de uma despesa deve ser permitida somente enquanto ela estiver no estado DRAFT.
+- Após o envio para aprovação, a associação deve permanecer bloqueada para alteração na V1.
+- O bloqueio deve valer para todos os perfis, inclusive Administrador.
+- A rejeição não deve desbloquear automaticamente a alteração do centro de custo.
+- A desativação do centro de custo não deve remover nem substituir sua associação às despesas já enviadas.
+- O servidor deve verificar o estado vigente da despesa antes de permitir qualquer alteração da associação.
+- Um eventual fluxo de correção da classificação após o envio fica previsto para evolução, com regras e histórico próprios a detalhar.
+
+### Critérios de aceite do bloqueio após o envio
+
+- **CA53:** após a saída do estado DRAFT, tentativas de incluir, substituir ou remover o centro de custo devem ser recusadas.
+- **CA54:** o papel Administrador não deve permitir contornar esse bloqueio.
+- **CA55:** a rejeição da despesa não deve liberar a alteração de seu centro de custo.
+- **CA56:** tentativas realizadas diretamente pela API ou a partir de uma tela desatualizada devem respeitar o estado vigente da despesa.
+- **CA57:** quando uma alteração for recusada, a associação existente deve ser preservada.
+- **CA58:** a desativação do centro de custo deve preservar sua associação às despesas já enviadas.
+
+### Evolução futura
+
+- Rateio de despesas entre centros de custo.
+- Correção do centro de custo de despesas após o envio, com
+  autorização e rastreabilidade a definir.
+
+### Requisitos relacionados
+
+O RF07 — Cadastro de despesa e o RF11 — Enviar despesa devem
+aplicar as regras de associação e obrigatoriedade definidas
+neste requisito.
