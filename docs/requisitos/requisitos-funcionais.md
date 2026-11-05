@@ -97,8 +97,8 @@ O usuário deve acessar o link, informar a senha desejada e confirmá-la. Após 
 
 ### Critérios de aceite da política de senha
 
-- **CA16:** senhas com menos de 8 ou mais de 128 caracteres devem ser recusadas, informando o limite aplicável.
-- **CA17:** senhas entre 8 e 128 caracteres que atendam às demais regras devem ser aceitas, mesmo sem combinação de diferentes tipos de caracteres.
+- **CA16:** senhas com menos de 15 ou mais de 128 caracteres devem ser recusadas, informando o limite aplicável.
+- **CA17:** senhas entre 15 e 128 caracteres que atendam às demais regras devem ser aceitas, mesmo sem combinação de diferentes tipos de caracteres.
 - **CA18:** letras acentuadas e espaços devem ser aceitos como parte da senha.
 - **CA19:** senhas presentes na lista de bloqueio devem ser recusadas, com orientação para escolher outra senha.
 - **CA20:** o usuário deve conseguir colar a senha e utilizar preenchimento automático por um gerenciador.
@@ -245,7 +245,6 @@ O mecanismo de autenticação, o formato e a duração das credenciais de acesso
 - **CA55:** uma consulta atualizada deve refletir os dados e papéis vigentes no servidor, incluindo alterações realizadas pelo Administrador.
 - **CA56:** consultas sem autenticação válida ou realizadas por uma conta desativada devem ser recusadas.
 
-
 ## RF02 — Empresa
 
 ### Objetivo
@@ -287,12 +286,12 @@ A versão inicial atenderá uma única empresa. O atendimento a múltiplas empre
 
 ### Dados da empresa
 
-| Campo | Obrigatoriedade | Descrição |
-|---|---|---|
-| Razão social | Obrigatório | Nome formal da empresa |
-| Nome fantasia | Opcional | Nome de uso da empresa |
-| CNPJ | Obrigatório | Identificador da empresa brasileira |
-| Moeda padrão | Obrigatório e fixo | Real brasileiro, identificado pelo código BRL |
+| Campo         | Obrigatoriedade    | Descrição                                     |
+| ------------- | ------------------ | --------------------------------------------- |
+| Razão social  | Obrigatório        | Nome formal da empresa                        |
+| Nome fantasia | Opcional           | Nome de uso da empresa                        |
+| CNPJ          | Obrigatório        | Identificador da empresa brasileira           |
+| Moeda padrão  | Obrigatório e fixo | Real brasileiro, identificado pelo código BRL |
 
 ### Regras dos dados cadastrais
 
@@ -314,7 +313,6 @@ A versão inicial atenderá uma única empresa. O atendimento a múltiplas empre
 ### Pontos ainda a detalhar
 
 - Configurações e políticas básicas de despesas.
-
 
 ### Alteração dos dados da empresa
 
@@ -531,13 +529,13 @@ Na V1, estarão disponíveis os papéis Colaborador, Gestor e Administrador. Os 
 
 ### Dados do usuário
 
-| Campo | Obrigatoriedade | Regra |
-|---|---|---|
-| Nome completo | Obrigatório | Identifica a pessoa |
-| E-mail | Obrigatório | Deve ser único entre as contas cadastradas |
-| Papéis | Obrigatório | Deve conter pelo menos um papel disponível |
-| Situação | Obrigatório | Ativo ou inativo; ativo por padrão no cadastro |
-| Empresa | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
+| Campo         | Obrigatoriedade          | Regra                                          |
+| ------------- | ------------------------ | ---------------------------------------------- |
+| Nome completo | Obrigatório              | Identifica a pessoa                            |
+| E-mail        | Obrigatório              | Deve ser único entre as contas cadastradas     |
+| Papéis        | Obrigatório              | Deve conter pelo menos um papel disponível     |
+| Situação      | Obrigatório              | Ativo ou inativo; ativo por padrão no cadastro |
+| Empresa       | Obrigatório e automático | Deve ser a única empresa cadastrada na V1      |
 
 ### Regras do cadastro
 
@@ -604,7 +602,6 @@ Na V1, estarão disponíveis os papéis Colaborador, Gestor e Administrador. Os 
 - **CA17:** a tela de edição deve apresentar o e-mail somente para leitura, inclusive quando o primeiro acesso estiver pendente.
 - **CA18:** tentativas de alterar o e-mail pela operação comum da API devem ser recusadas, preservando o endereço existente.
 - **CA19:** a alteração do nome deve manter o identificador da conta, suas associações e seu histórico.
-
 
 ### Responsabilidade pela correção do e-mail
 
@@ -865,7 +862,6 @@ Considera-se Gestor apto ao acesso uma conta que possua o papel Gestor, esteja a
 
 O RF11 — Enviar despesa deve aplicar a verificação do Gestor responsável definida nesta seção.
 
-
 ### Troca de Gestor e aprovações pendentes
 
 - A alteração do Gestor responsável deve ser realizada pelo Administrador.
@@ -890,7 +886,6 @@ O RF11 — Enviar despesa deve aplicar a verificação do Gestor responsável de
 ### Requisito relacionado
 
 O RF12 — Aprovação simples deve respeitar a responsabilidade vigente e as transferências definidas nesta seção.
-
 
 ### Desativação de Gestor sem substituto
 
@@ -1058,12 +1053,12 @@ A V1 deve disponibilizar um cadastro simples, sem hierarquia entre departamentos
 
 ### Dados do departamento
 
-| Campo | Obrigatoriedade | Regra |
-|---|---|---|
-| Nome | Obrigatório | Deve ser único na empresa |
-| Descrição | Opcional | Explica a finalidade da área |
-| Situação | Obrigatório | Ativo ou inativo; ativo por padrão |
-| Empresa | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
+| Campo     | Obrigatoriedade          | Regra                                     |
+| --------- | ------------------------ | ----------------------------------------- |
+| Nome      | Obrigatório              | Deve ser único na empresa                 |
+| Descrição | Opcional                 | Explica a finalidade da área              |
+| Situação  | Obrigatório              | Ativo ou inativo; ativo por padrão        |
+| Empresa   | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
 
 ### Regras do cadastro
 
@@ -1183,13 +1178,13 @@ A V1 deve disponibilizar cadastro e associação de centros de custo às despesa
 
 ### Dados do centro de custo
 
-| Campo | Obrigatoriedade | Regra |
-|---|---|---|
-| Código | Obrigatório | Deve ser único na empresa |
-| Nome | Obrigatório | Identifica o centro de custo para os usuários |
-| Descrição | Opcional | Explica sua finalidade |
-| Situação | Obrigatório | Ativo ou inativo; ativo por padrão |
-| Empresa | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
+| Campo     | Obrigatoriedade          | Regra                                         |
+| --------- | ------------------------ | --------------------------------------------- |
+| Código    | Obrigatório              | Deve ser único na empresa                     |
+| Nome      | Obrigatório              | Identifica o centro de custo para os usuários |
+| Descrição | Opcional                 | Explica sua finalidade                        |
+| Situação  | Obrigatório              | Ativo ou inativo; ativo por padrão            |
+| Empresa   | Obrigatório e automático | Deve ser a única empresa cadastrada na V1     |
 
 ### Regras do cadastro
 
@@ -1237,7 +1232,8 @@ A V1 deve disponibilizar cadastro e associação de centros de custo às despesa
 - **CA15:** um código utilizado por centro de custo inativo deve impedir seu uso em outro cadastro.
 - **CA16:** códigos com zeros à esquerda devem preservar esses caracteres no armazenamento e na consulta.
 - **CA17:** solicitações simultâneas com códigos equivalentes não devem gerar cadastros duplicados.
-- 
+-
+
 ### Alteração dos dados do centro de custo
 
 - O Administrador deve poder alterar o nome e a descrição.
@@ -1381,7 +1377,6 @@ O RF07 — Cadastro de despesa e o RF11 — Enviar despesa devem
 aplicar as regras de associação e obrigatoriedade definidas
 neste requisito.
 
-
 ## RF06 — Categorias de despesa
 
 ### Objetivo
@@ -1398,12 +1393,12 @@ A V1 deve disponibilizar um cadastro simples de categorias, sem subcategorias e 
 
 ### Dados da categoria
 
-| Campo | Obrigatoriedade | Regra |
-|---|---|---|
-| Nome | Obrigatório | Deve ser único na empresa |
-| Descrição | Opcional | Orienta quando utilizar a categoria |
-| Situação | Obrigatório | Ativa ou inativa; ativa por padrão |
-| Empresa | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
+| Campo     | Obrigatoriedade          | Regra                                     |
+| --------- | ------------------------ | ----------------------------------------- |
+| Nome      | Obrigatório              | Deve ser único na empresa                 |
+| Descrição | Opcional                 | Orienta quando utilizar a categoria       |
+| Situação  | Obrigatório              | Ativa ou inativa; ativa por padrão        |
+| Empresa   | Obrigatório e automático | Deve ser a única empresa cadastrada na V1 |
 
 ### Regras do cadastro
 
@@ -1578,4 +1573,3 @@ O RF07 — Cadastro de despesa e o RF11 — Enviar despesa devem aplicar as regr
 
 - Correção da categoria de despesas após o envio, com autorização e rastreabilidade a definir.
 - Configuração de limites de gastos por categoria, conforme evolução prevista no RF02.
-
